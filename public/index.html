@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lab7 — Login y tareas</title>
+  <style>
+    :root { font-family: system-ui, sans-serif; max-width: 520px; margin: 1.5rem auto; padding: 0 1rem; }
+    h1 { font-size: 1.25rem; }
+    label { display: block; margin-top: 0.75rem; font-size: 0.9rem; }
+    input { width: 100%; padding: 0.5rem; box-sizing: border-box; margin-top: 0.25rem; }
+    button { margin-top: 1rem; padding: 0.5rem 1rem; cursor: pointer; }
+    .row { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.5rem; }
+    .err { color: #b00020; font-size: 0.9rem; margin-top: 0.5rem; }
+    .ok { color: #0a6; font-size: 0.85rem; }
+    ul { list-style: none; padding: 0; }
+    li { border: 1px solid #ccc; padding: 0.5rem; margin-top: 0.35rem; border-radius: 6px; }
+    code { font-size: 0.8rem; background: #f4f4f4; padding: 0.1rem 0.3rem; }
+  </style>
+</head>
+<body>
+  <h1>Lab7 — Login + CRUD tareas</h1>
+  <p class="ok" id="meta"></p>
+
+  <section id="auth">
+    <h2>Cuenta</h2>
+    <label>Usuario <input id="u" autocomplete="username" /></label>
+    <label>Contrasena <input id="p" type="password" autocomplete="current-password" /></label>
+    <button type="button" id="reg">Registrarse</button>
+    <button type="button" id="login">Iniciar sesion</button>
+    <div class="err" id="authErr"></div>
+  </section>
+
+  <section id="app" hidden>
+    <h2>Tus tareas</h2>
+    <p><button type="button" id="logout">Cerrar sesion</button></p>
+    <label>Nueva tarea <input id="title" placeholder="Titulo" /></label>
+    <button type="button" id="add">Agregar</button>
+    <div class="err" id="taskErr"></div>
+    <ul id="list"></ul>
+  </section>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const tokenKey = "lab7_token";
+    let token = localStorage.getItem(tokenKey);
+
+    function setMeta() {
+      fetch("/api/meta").then(r => r.json()).then(d => {
+        $("meta").textContent = "Instancia: " + (d.instance || "?") + " | DB: " + (d.dbOk ? "conectada" : "sin conexion");
+      }).catch(() => {});
+    }
+
+    function authHeader() {
+      return { Authorization: "Bearer " + token, "Content-Type": "application/json" };
+    }
+
+    async function loadTasks() {
+      $("taskErr").textContent = "";
+      const r = await fetch("/api/tasks", { headers: authHeader() });
+      if (!r.ok) { $("taskErr").textContent = await r.text(); return; }
+      const tasks = await r.json();
+      $("list").innerHTML = tasks.map(t =>
+        `<li class="row"><input type="checkbox" data-id="${t.id}" ${t.done ? "checked" : ""}/>
+         <span style="flex:1">${escapeHtml(t.title)}</span>
+         <button data-del="${t.id}">Borrar</button></li>`
+      ).join("") || "<li>(sin tareas)</li>";
+
+      $("list").querySelectorAll("input[type=checkbox]").forEach(cb => {
+        cb.addEventListener("change", () => patchTask(cb.dataset.id, { done: cb.checked }));
+      });
+      $("list").querySelectorAll("button[data-del]").forEach(btn => {
+        btn.addEventListener("click", () => delTask(btn.getAttribute("data-del")));
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+    }
+
+    async function patchTask(id, body) {
+      const r = await fetch("/api/tasks/" + id, { method: "PATCH", headers: authHeader(), body: JSON.stringify(body) });
+      if (!r.ok) $("taskErr").textContent = await r.text();
+    }
+
+    async function delTask(id) {
+      const r = await fetch("/api/tasks/" + id, { method: "DELETE", headers: authHeader() });
+      if (!r.ok) { $("taskErr").textContent = await r.text(); return; }
+      loadTasks();
+    }
+
+    function showApp() {
+      $("auth").hidden = true;
+      $("app").hidden = false;
+      loadTasks();
+    }
+
+    function showAuth() {
+      token = null;
+      localStorage.removeItem(tokenKey);
+      $("auth").hidden = false;
+      $("app").hidden = true;
+    }
+
+    $("reg").onclick = async () => {
+      $("authErr").textContent = "";
+      const r = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: $("u").value.trim(), password: $("p").value }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) { $("authErr").textContent = j.error || r.statusText; return; }
+      token = j.token;
+      localStorage.setItem(tokenKey, token);
+      showApp();
+    };
+
+    $("login").onclick = async () => {
+      $("authErr").textContent = "";
+      const r = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: $("u").value.trim(), password: $("p").value }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) { $("authErr").textContent = j.error || r.statusText; return; }
+      token = j.token;
+      localStorage.setItem(tokenKey, token);
+      showApp();
+    };
+
+    $("logout").onclick = () => showAuth();
+
+    $("add").onclick = async () => {
+      $("taskErr").textContent = "";
+      const title = $("title").value.trim();
+      if (!title) return;
+      const r = await fetch("/api/tasks", { method: "POST", headers: authHeader(), body: JSON.stringify({ title }) });
+      if (!r.ok) { $("taskErr").textContent = await r.text(); return; }
+      $("title").value = "";
+      loadTasks();
+    };
+
+    if (token) showApp();
+    setMeta();
+  </script>
+</body>
+</html>

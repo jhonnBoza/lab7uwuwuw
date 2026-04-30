@@ -1,5 +1,7 @@
 # Parte B - Despliegue en AWS (ALB + 2 EC2)
 
+Para el lab **completo** (login + CRUD + RDS detras del mismo ALB), sigue ademas **`README-parteC.md`**.
+
 Esta parte replica la idea de la Parte A, pero en AWS:
 
 - Un `Application Load Balancer` publico recibe trafico HTTP.

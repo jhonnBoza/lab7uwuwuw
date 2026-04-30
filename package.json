@@ -1,12 +1,15 @@
 {
   "name": "lab7-round-robin",
   "version": "1.0.0",
-  "description": "Parte A del lab: 3 backends Node balanceados por Nginx",
+  "description": "Lab7: Nginx local (A), ALB+EC2 (B), Login+CRUD+RDS (C)",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.21.2"
+    "bcryptjs": "^2.4.3",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.11.5"
   }
 }
