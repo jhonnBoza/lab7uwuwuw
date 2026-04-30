@@ -8,7 +8,23 @@ Esta parte une lo que ya tienes en AWS (ALB + 2 EC2 + target group) con una **ap
 - Mismo **JWT_SECRET** en ambas EC2 (si no, el login en una instancia falla al pegarle la otra).
 - Repo propio (por ejemplo [tu GitHub](https://github.com/jhonnBoza/lab7uwuwuw)).
 
-## 1) Crear RDS MySQL
+## 0) Si la consola del navegador no carga (iframe / firewall)
+
+Puedes crear RDS desde **CloudShell** con el script del repo:
+
+```bash
+git clone https://github.com/jhonnBoza/lab7uwuwuw.git
+cd lab7uwuwuw
+export RDS_PASSWORD='TuPasswordSeguro123!'
+export WEB_SG=sg-0c503203721415736
+bash scripts/rds-desde-cloudshell.sh
+aws rds wait db-instance-available --region us-east-2 --db-instance-identifier lab7-mysql
+aws rds describe-db-instances --region us-east-2 --db-instance-identifier lab7-mysql --query "DBInstances[0].Endpoint.Address" --output text
+```
+
+Luego usa el **endpoint** impreso en `DB_HOST` de cada EC2 (`README-parteC` seccion 2).
+
+## 1) Crear RDS MySQL (consola manual)
 
 1. Consola AWS → **RDS** → **Create database**.
 2. Engine: **MySQL** (8.x).
