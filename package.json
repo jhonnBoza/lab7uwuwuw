@@ -1,0 +1,12 @@
+{
+  "name": "lab7-round-robin",
+  "version": "1.0.0",
+  "description": "Parte A del lab: 3 backends Node balanceados por Nginx",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
