@@ -13,7 +13,8 @@ SUBNET_B=$(aws ec2 describe-subnets --region "$REGION" --filters Name=vpc-id,Val
 # SG de las EC2 (ajusta si el tuyo es otro)
 WEB_SG="${WEB_SG:-sg-0c503203721415736}"
 
-RDS_SG_NAME="sg-rds-lab7-mysql"
+# Nota: el nombre del SG no puede empezar por "sg-" (restriccion AWS en algunas cuentas).
+RDS_SG_NAME="rds-lab7-mysql"
 RDS_SG=$(aws ec2 describe-security-groups --region "$REGION" --filters "Name=group-name,Values=$RDS_SG_NAME" "Name=vpc-id,Values=$VPC_ID" --query "SecurityGroups[0].GroupId" --output text 2>/dev/null || true)
 if [ -z "$RDS_SG" ] || [ "$RDS_SG" = "None" ]; then
   RDS_SG=$(aws ec2 create-security-group --region "$REGION" --group-name "$RDS_SG_NAME" --description "RDS lab7 MySQL" --vpc-id "$VPC_ID" --query "GroupId" --output text)

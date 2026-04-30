@@ -32,7 +32,7 @@ Luego usa el **endpoint** impreso en `DB_HOST` de cada EC2 (`README-parteC` secc
 4. Identificador, usuario maestro y contrasena (guardalos).
 5. **VPC**: la misma que tus EC2.
 6. **Public access**: para laboratorio simple puedes usar **Yes** (mas facil desde EC2 sin NAT). En produccion seria privado + subnets privadas.
-7. **VPC security group**: crea `sg-rds-lab7`:
+7. **VPC security group**: crea uno con nombre **sin** prefijo `sg-` (ej. `rds-lab7-mysql`):
    - Inbound: **MySQL/Aurora 3306** desde el **security group de las EC2** (`sg-web`), no desde `0.0.0.0/0`.
 8. Crea la base (por ejemplo `lab7`) desde **RDS Query Editor** o con cliente MySQL desde una EC2:
 
