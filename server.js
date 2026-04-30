@@ -7,7 +7,7 @@ const { signToken, authMiddleware } = require("./auth");
 const app = express();
 const PORT = Number(process.env.PORT || 8080);
 const HOST = process.env.HOST || "0.0.0.0";
-const INSTANCE = process.env.INSTANCE_NAME || process.env.NAME || "ec2-node");
+const INSTANCE = process.env.INSTANCE_NAME || process.env.NAME || "ec2-node";
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
